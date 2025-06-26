@@ -3,7 +3,7 @@ resolver = "2"
 members = [
     "openh264-sys2",
     "openh264"
-]
+, "mysimpledecoder"]
 
 
 [workspace.lints.clippy]
