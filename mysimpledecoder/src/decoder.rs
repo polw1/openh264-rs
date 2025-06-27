@@ -15,7 +15,7 @@ pub struct SVideoProperty {
 }
 
 #[repr(C)]
-#[derive(Debug, Default, Copy, Clone)]
+#[derive(Debug, Copy, Clone)]
 pub struct SDecodingParam {
     pub pFileNameRestructed: *mut c_char,
     pub uiCpuLoad: c_uint,
@@ -23,6 +23,19 @@ pub struct SDecodingParam {
     pub eEcActiveIdc: c_int,
     pub bParseOnly: bool,
     pub sVideoProperty: SVideoProperty,
+}
+
+impl Default for SDecodingParam {
+    fn default() -> Self {
+        Self {
+            pFileNameRestructed: std::ptr::null_mut(),
+            uiCpuLoad: 0,
+            uiTargetDqLayer: 0,
+            eEcActiveIdc: 0,
+            bParseOnly: false,
+            sVideoProperty: SVideoProperty::default(),
+        }
+    }
 }
 
 #[repr(C)]
@@ -150,7 +163,7 @@ pub struct ISVCDecoderVtbl {
     >,
 }
 
-extern "C" {
+unsafe extern "C" {
     fn WelsCreateDecoder(ppDecoder: *mut *mut ISVCDecoder) -> c_long;
     fn WelsDestroyDecoder(pDecoder: *mut ISVCDecoder);
 }
@@ -164,11 +177,11 @@ impl DynamicAPI {
     }
 
     pub unsafe fn WelsCreateDecoder(&self, pp: *mut *mut ISVCDecoder) -> c_long {
-        WelsCreateDecoder(pp)
+        unsafe { WelsCreateDecoder(pp) }
     }
 
     pub unsafe fn WelsDestroyDecoder(&self, p: *mut ISVCDecoder) {
-        WelsDestroyDecoder(p)
+        unsafe { WelsDestroyDecoder(p) }
     }
 }
 
@@ -177,8 +190,8 @@ impl DynamicAPI {
 #[derive(Debug)]
 pub struct Error(Box<dyn std::error::Error>);
 
-impl<E: std::error::Error + 'static> From<E> for Error {
-    fn from(e: E) -> Self {
+impl From<std::io::Error> for Error {
+    fn from(e: std::io::Error) -> Self {
         Self(Box::new(e))
     }
 }
